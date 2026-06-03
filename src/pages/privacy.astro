@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base
+  title="Privacy Policy — SSO El Paso"
+  description="Privacy policy for SSO El Paso. How we handle information, cookies, and advertising."
+  canonicalPath="/privacy/"
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy' }]} />
+
+  <header class="page-header">
+    <div class="page-header-eyebrow">About this site</div>
+    <div class="page-header-title-row">
+      <h1>Privacy Policy</h1>
+    </div>
+  </header>
+
+  <div class="article-grid-v2">
+    <article class="article-main">
+      <p class="article-intro">This privacy policy explains how SSO El Paso handles information collected through this website.</p>
+
+      <h2>Information we collect</h2>
+      <p>We collect standard server logs (IP address, browser, pages visited, timestamps) automatically for site operation and security. We do not ask for or store personal data such as your name, Social Security number, or contact details unless you voluntarily contact us.</p>
+
+      <h2>Analytics and advertising</h2>
+      <p>We use standard analytics to understand site usage. We may display advertising from third parties (including Google AdSense), which may use cookies to serve relevant ads based on your prior visits to this and other websites. You can opt out of personalized advertising through the relevant ad networks.</p>
+
+      <h2>Cookies</h2>
+      <p>This site may use cookies for site functionality, analytics, and advertising. You can disable cookies in your browser settings; some site features may not work without them.</p>
+
+      <h2>Your privacy and the SSA</h2>
+      <p>SSO El Paso does not collect, store or transmit your Social Security number, banking information, or other sensitive personal data. <strong>Never enter sensitive personal information into any third-party site claiming to be the SSA.</strong> Official services are only at <a href="https://www.ssa.gov">ssa.gov</a>.</p>
+
+      <h2>Contact</h2>
+      <p>For privacy questions, contact us via the <a href="/contact/">contact page</a>.</p>
+    </article>
+  </div>
+</Base>

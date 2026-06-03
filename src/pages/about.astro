@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base
+  title="About SSO El Paso — Independent Editorial Guide"
+  description="About SSO El Paso, an independent guide to Social Security services for residents of El Paso, Texas. Not affiliated with the SSA."
+  canonicalPath="/about/"
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+
+  <header class="page-header">
+    <div class="page-header-eyebrow">About this site</div>
+    <div class="page-header-title-row">
+      <h1>About SSO El Paso</h1>
+    </div>
+  </header>
+
+  <div class="article-grid-v2">
+    <article class="article-main">
+      <p class="article-intro">SSO El Paso is an independent informational website that explains how Social Security services work for residents of El Paso, Texas. We turn the official rules into plain-English, step-by-step guides anyone can follow.</p>
+
+      <h2>What you will find here</h2>
+      <p>Practical guides for the services El Paso residents actually need: applying for a Social Security card, replacing a lost card, applying for disability benefits, claiming retirement, enrolling in Medicare, finding and visiting the local SSA office, and understanding the rules around Social Security generally.</p>
+
+      <h2>Not affiliated with the SSA</h2>
+      <p>SSO El Paso is privately operated. We are <strong>not affiliated with, endorsed by or operated by</strong> the U.S. Social Security Administration or any other government agency. For official information, services and applications, always go to <a href="https://www.ssa.gov">ssa.gov</a>.</p>
+
+      <h2>How we keep this accurate</h2>
+      <p>Every guide is researched against official SSA publications and reviewed for accuracy. SSA rules change, so we date our guides and recommend verifying anything time-sensitive on the official site. If you find something incorrect, please <a href="/contact/">let us know</a>.</p>
+    </article>
+  </div>
+</Base>

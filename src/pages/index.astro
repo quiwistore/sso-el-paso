@@ -1,0 +1,140 @@
+---
+import Base from '../layouts/Base.astro';
+import { site, services, office, learn, home_content as homeContent } from '../data/datos.js';
+
+const servicesOrden = [
+  'apply-for-social-security-card-el-paso',
+  'replace-social-security-card-el-paso',
+  'apply-for-disability-benefits-el-paso',
+  'apply-for-ssi-el-paso',
+  'apply-for-social-security-retirement-el-paso',
+  'apply-for-medicare-el-paso',
+  'change-name-on-social-security-card-el-paso',
+  'get-social-security-number-for-newborn-el-paso'
+];
+const serviceLabels = {
+  'apply-for-social-security-card-el-paso': { short: 'Apply for SSN card', abbr: 'SSN' },
+  'replace-social-security-card-el-paso': { short: 'Replace lost card', abbr: 'RPL' },
+  'apply-for-disability-benefits-el-paso': { short: 'Disability benefits (SSDI)', abbr: 'SSDI' },
+  'apply-for-ssi-el-paso': { short: 'Supplemental Security Income', abbr: 'SSI' },
+  'apply-for-social-security-retirement-el-paso': { short: 'Retirement benefits', abbr: 'RET' },
+  'apply-for-medicare-el-paso': { short: 'Medicare enrollment', abbr: 'MED' },
+  'change-name-on-social-security-card-el-paso': { short: 'Change name on card', abbr: 'NAM' },
+  'get-social-security-number-for-newborn-el-paso': { short: 'SSN for newborn', abbr: 'NEW' }
+};
+const servicesOrdered = servicesOrden.map(s => ({
+  ...services.find(t => t.slug === s),
+  label: serviceLabels[s]
+})).filter(t => t.slug);
+
+const hubFaq = homeContent?.sections?.find(s => s.type === 'faq_extra');
+const hubChecklist = homeContent?.sections?.find(s => s.type === 'checklist');
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", "name": site.name, "url": `https://${site.domain}/`, "description": site.tagline, "inLanguage": "en" },
+    {
+      "@type": "Article",
+      "headline": "Social Security Office in El Paso, TX",
+      "description": "Independent guide to the SSA office in El Paso: address, hours, services, appointments, and step-by-step instructions for common Social Security tasks.",
+      "author": { "@type": "Organization", "name": site.name },
+      "publisher": { "@type": "Organization", "name": site.name },
+      "inLanguage": "en",
+      "url": `https://${site.domain}/`
+    }
+  ]
+};
+---
+
+<Base
+  title="Social Security Office in El Paso, TX: Services, Hours & Appointments (2026)"
+  description="Independent guide to the Social Security office in El Paso, Texas: address (11111 Gateway Blvd W), hours, appointments, SSN cards, disability, retirement, Medicare & SSI."
+  canonicalPath="/"
+  schema={schema}
+>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">Independent guide · Not affiliated with SSA</div>
+      <h1>Social Security in <em>El Paso, TX</em></h1>
+      <p class="hero-sub">Plain-English guides for SSN cards, disability claims, retirement, Medicare, and the local SSA office at 11111 Gateway Blvd W. Free, step-by-step, no government affiliation.</p>
+    </div>
+  </section>
+
+  <section class="tramites-grid-section">
+    <h2>What do you need to do?</h2>
+    <div class="tramites-grid">
+      {servicesOrdered.map(t => (
+        <a href={`/${t.slug}/`} class="tramite-tile">
+          <span class="icon-box">{t.label.abbr}</span>
+          <span class="tile-text">{t.label.short}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="office-section">
+    <h2>El Paso SSA office</h2>
+    <div class="office-card">
+      <h3>Social Security Administration · El Paso Field Office</h3>
+      <div class="meta"><i class="fas fa-map-marker-alt"></i> <span><strong>Address:</strong> {site.office.address} (<a href="/social-security-office-near-me-el-paso/">see map & directions</a>)</span></div>
+      <div class="meta"><i class="fas fa-clock"></i> <span><strong>Hours:</strong> {site.office.hours_general} (<a href="/social-security-office-hours-el-paso/">see full schedule</a>)</span></div>
+      <div class="meta"><i class="fas fa-phone"></i> <span><strong>National line:</strong> <a href={`tel:${site.office.phone_national.replace(/[^+0-9]/g, '')}`}>{site.office.phone_national}</a> · <strong>TTY:</strong> <a href={`tel:${site.office.tty.replace(/[^+0-9]/g, '')}`}>{site.office.tty}</a></span></div>
+      <div class="meta"><i class="fas fa-calendar-check"></i> <span><strong>Appointments:</strong> Strongly recommended (<a href="/social-security-office-appointment-el-paso/">how to schedule</a>)</span></div>
+      <div class="meta"><i class="fas fa-globe"></i> <span><strong>Online:</strong> <a href="https://www.ssa.gov">ssa.gov</a> · <strong>My Account:</strong> <a href="https://www.ssa.gov/myaccount/">ssa.gov/myaccount</a></span></div>
+      <p class="meta-disclaimer"><strong>Important:</strong> office details can change. Always confirm hours and address on the <a href="https://secure.ssa.gov/ICON/main.jsp">official SSA office locator</a> before visiting. This is an independent editorial guide.</p>
+    </div>
+  </section>
+
+  <section class="find-section">
+    <div class="find-inner">
+      <h2>What you will find in our guides</h2>
+      <div class="find-grid">
+        <a href="/social-security-office-hours-el-paso/" class="find-card">
+          <div class="icon"><i class="fas fa-clock"></i></div>
+          <h3>Office hours</h3>
+          <p>Standard schedule plus Wednesday early-close, federal holidays, and best times to visit.</p>
+        </a>
+        <a href="/social-security-office-near-me-el-paso/" class="find-card">
+          <div class="icon"><i class="fas fa-map-marker-alt"></i></div>
+          <h3>Exact location</h3>
+          <p>Full address, parking info, public transit, and which neighborhoods this office serves.</p>
+        </a>
+        <a href="/ssa-required-documents-el-paso/" class="find-card">
+          <div class="icon"><i class="fas fa-file-circle-check"></i></div>
+          <h3>What documents to bring</h3>
+          <p>Required paperwork by service type — SSN cards, disability, retirement, Medicare, and more.</p>
+        </a>
+        <a href="/social-security-office-appointment-el-paso/" class="find-card">
+          <div class="icon"><i class="fas fa-calendar-check"></i></div>
+          <h3>How to book appointments</h3>
+          <p>Step-by-step on how to schedule by phone, avoid 2-hour waits, and what to expect on the day.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="guides-band">
+    <div class="guides-band-inner">
+      <div>
+        <h2>Not sure where to start?</h2>
+        <p>Learn the basics: what Social Security covers, how SSI differs from SSDI, and when to apply for retirement.</p>
+      </div>
+      <div>
+        <a href="/what-is-social-security/" class="btn-primary">Read intro guides <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  {hubFaq && (
+    <section class="home-faq-section">
+      <h2>Frequently asked questions</h2>
+      {hubFaq.items.map(item => (
+        <div class="faq-item">
+          <h3>{item.q}</h3>
+          <p set:html={item.a}></p>
+        </div>
+      ))}
+    </section>
+  )}
+</Base>

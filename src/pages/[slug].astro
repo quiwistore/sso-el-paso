@@ -1,0 +1,232 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { allPages, services, office, learn, site } from '../data/datos.js';
+
+export async function getStaticPaths() {
+  const { allPages } = await import('../data/datos.js');
+  return allPages.map(page => ({ params: { slug: page.slug }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const qi = page.quick_info;
+
+const siloMap = { services, office, learn };
+const siloPages = siloMap[page.silo] || [];
+const sidebarPages = siloPages.filter(p => p.slug !== page.slug).slice(0, 8);
+
+const siloLabels = {
+  services: { label: "Services", href: "/apply-for-social-security-card-el-paso/" },
+  office: { label: "El Paso office", href: "/" },
+  learn: { label: "Learn", href: "/what-is-social-security/" }
+};
+const siloCrumb = siloLabels[page.silo];
+const breadcrumbs = [
+  { label: "Home", href: "/" },
+  siloCrumb,
+  { label: page.h1.length > 60 ? page.h1.substring(0, 60) + '...' : page.h1 }
+].filter(Boolean);
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": page.h1,
+      "description": page.meta,
+      "author": { "@type": "Organization", "name": site.name },
+      "publisher": { "@type": "Organization", "name": site.name },
+      "inLanguage": "en",
+      "url": `https://${site.domain}/${page.slug}/`
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": breadcrumbs.map((b, i) => ({
+        "@type": "ListItem",
+        "position": i + 1,
+        "name": b.label,
+        ...(b.href ? { "item": `https://${site.domain}${b.href}` } : {})
+      }))
+    }
+  ]
+};
+
+const defaultEyebrows = {
+  services: "Services",
+  office: "El Paso office",
+  learn: "Learn"
+};
+const eyebrow = qi?.category || defaultEyebrows[page.silo] || "";
+
+const hoursWeekly = [
+  { day: 'Monday', hours: '9:00 AM – 4:00 PM' },
+  { day: 'Tuesday', hours: '9:00 AM – 4:00 PM' },
+  { day: 'Wednesday', hours: '9:00 AM – 12:00 PM (often)', note: true },
+  { day: 'Thursday', hours: '9:00 AM – 4:00 PM' },
+  { day: 'Friday', hours: '9:00 AM – 4:00 PM' },
+  { day: 'Saturday', hours: 'Closed', closed: true },
+  { day: 'Sunday', hours: 'Closed', closed: true }
+];
+const showHoursTable = qi?.show_hours_table;
+---
+
+<Base
+  title={page.title}
+  description={page.meta}
+  canonicalPath={`/${page.slug}/`}
+  schema={schema}
+>
+  <Breadcrumbs items={breadcrumbs} />
+
+  <header class="page-header">
+    {eyebrow && <div class="page-header-eyebrow">{eyebrow}</div>}
+    <div class="page-header-title-row">
+      <h1>{page.h1}</h1>
+      {qi?.status_chip && <span class="status-chip">{qi.status_chip}</span>}
+    </div>
+    {qi?.ctas && (
+      <div class="cta-row">
+        {qi.ctas.map(cta => (
+          <a
+            href={cta.href}
+            class={cta.primary ? 'btn-primary' : 'btn-ghost'}
+            {...(cta.external ? { target: '_blank', rel: 'noopener' } : {})}
+          >
+            <i class={`fas fa-${cta.icon}`}></i>
+            {cta.label}
+          </a>
+        ))}
+      </div>
+    )}
+  </header>
+
+  <div class="article-grid-v2">
+    <article class="article-main">
+      <p class="article-intro" set:html={page.intro}></p>
+
+      {showHoursTable && (
+        <div class="hours-table-card">
+          <h2><i class="fas fa-clock"></i> Office hours</h2>
+          <table class="hours-table">
+            {hoursWeekly.map(d => (
+              <tr>
+                <td>{d.day}</td>
+                <td class={d.closed ? 'closed' : ''}>{d.hours}</td>
+              </tr>
+            ))}
+          </table>
+          <p class="hours-table-footnote">Wednesday hours vary — the office often closes around noon. Federal holidays: closed. Always call 1-800-772-1213 to confirm before visiting.</p>
+        </div>
+      )}
+
+      {page.embed_src && (
+        <div class="embed-wrap">
+          <iframe src={page.embed_src} loading="lazy" title="Office location map" allowfullscreen></iframe>
+        </div>
+      )}
+
+      {page.sections.map((section) => {
+        if (section.type === "quick_answer") {
+          return (
+            <div class="quick-answer">
+              <h2>{section.heading}</h2>
+              <p set:html={section.body}></p>
+            </div>
+          );
+        }
+        if (section.type === "section") {
+          return (
+            <>
+              <h2>{section.heading}</h2>
+              {Array.isArray(section.body) ? section.body.map(p => <p set:html={p}></p>) : <p set:html={section.body}></p>}
+            </>
+          );
+        }
+        if (section.type === "checklist") {
+          return (
+            <div class="checklist" id="requirements">
+              <h2>{section.heading}</h2>
+              <ul>
+                {section.items.map(item => <li set:html={item}></li>)}
+              </ul>
+            </div>
+          );
+        }
+        if (section.type === "troubleshoot") {
+          return (
+            <>
+              <h2>{section.heading}</h2>
+              <div class="troubleshoot">
+                {section.items.map(item => (
+                  <div class="troubleshoot-item">
+                    <h3>{item.q}</h3>
+                    <p set:html={item.a}></p>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        }
+        if (section.type === "faq_extra") {
+          return (
+            <>
+              <h2>Frequently asked questions</h2>
+              {section.items.map(item => (
+                <div class="faq-item">
+                  <h3>{item.q}</h3>
+                  <p set:html={item.a}></p>
+                </div>
+              ))}
+            </>
+          );
+        }
+        if (section.type === "map" && section.embed_src) {
+          return (
+            <div class="embed-wrap">
+              <iframe src={section.embed_src} loading="lazy" title="Map" allowfullscreen></iframe>
+            </div>
+          );
+        }
+        return null;
+      })}
+    </article>
+
+    <aside class="sidebar-stack">
+      {qi?.sidebar && (
+        <div class="quick-info-card">
+          <h4>Quick info</h4>
+          {qi.sidebar.map(item => (
+            <div class="quick-info-item">
+              <span class="label">{item.label}</span>
+              <span class="value">{item.value}</span>
+            </div>
+          ))}
+          {qi.ctas && qi.ctas[0] && (
+            <div class="quick-info-cta">
+              <a
+                href={qi.ctas[0].href}
+                class="btn-primary"
+                {...(qi.ctas[0].external ? { target: '_blank', rel: 'noopener' } : {})}
+              >
+                <i class={`fas fa-${qi.ctas[0].icon}`}></i>
+                {qi.ctas[0].label}
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div class="related-card">
+        <h4>More on {(defaultEyebrows[page.silo] || '').toLowerCase()}</h4>
+        <ul>
+          {sidebarPages.map(p => (
+            <li>
+              <i class="fas fa-arrow-right"></i>
+              <a href={`/${p.slug}/`}>{p.h1}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</Base>

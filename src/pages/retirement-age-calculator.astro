@@ -1,0 +1,259 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+
+const title = 'Social Security Retirement Age Calculator';
+const meta = 'Free Social Security Retirement Age calculator. Find your Full Retirement Age and how much your benefit changes if you claim from age 62 to 70.';
+const schema = {
+  "@context":"https://schema.org","@type":"WebApplication",
+  "name":"Social Security Retirement Age Calculator",
+  "applicationCategory":"FinanceApplication",
+  "operatingSystem":"Web","offers":{"@type":"Offer","price":"0"}
+};
+---
+<Base title={title} description={meta} schema={schema}>
+  <div class="container-narrow article">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Retirement Age Calculator' }]} />
+
+    <header class="art-header">
+      <span class="eyebrow">Free tool</span>
+      <h1>Social Security Retirement Age Calculator</h1>
+      <p class="lead">Enter your birth year to find your Full Retirement Age (FRA) and see how your monthly benefit changes if you start claiming Social Security from age 62 to age 70.</p>
+    </header>
+
+    <div class="calc-card">
+      <label for="byear">Year you were born</label>
+      <div class="calc-input-row">
+        <input type="number" id="byear" min="1900" max="2024" placeholder="e.g. 1965" />
+        <button id="calc-btn" class="btn-primary">Calculate</button>
+      </div>
+      <p class="calc-hint">Your Full Retirement Age depends on your birth year and was set by Congress in 1983.</p>
+    </div>
+
+    <div id="result" class="result hidden">
+      <div class="result-main">
+        <span class="result-label">Your Full Retirement Age is</span>
+        <span id="fra-value" class="result-value">--</span>
+      </div>
+      <div class="result-detail">
+        <p>At your Full Retirement Age, you receive 100% of your earned Social Security benefit. Claim earlier and you get less; claim later (up to age 70) and you get more.</p>
+      </div>
+
+      <h3 class="table-title">Your benefit at each claiming age</h3>
+      <p class="table-sub">Percentages relative to your benefit at Full Retirement Age. The "earliest at 62, biggest at 70" rule applies to almost everyone.</p>
+      <div class="table-wrap">
+        <table class="benefit-table">
+          <thead>
+            <tr><th>Claiming age</th><th>Monthly benefit</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="benefit-rows"></tbody>
+        </table>
+      </div>
+
+      <div class="explain">
+        <h3>How to read this</h3>
+        <p>If your FRA benefit is for example $2,000/month, multiply that figure by each percentage to estimate your actual benefit at each age. Claiming at 62 typically means $1,400-1,500/month for life; claiming at 70 typically means $2,480-2,640/month for life. Use the SSA estimator at <a href="https://www.ssa.gov/myaccount">ssa.gov/myaccount</a> for your real numbers based on your earnings history.</p>
+        <p>This calculator is for general information only and does not include spousal benefits, the earnings test, or tax implications. See our guide on <a href="/when-to-apply-for-social-security-retirement/">when to apply for Social Security retirement</a> for the full picture.</p>
+      </div>
+    </div>
+
+    <section class="rich">
+      <h2>How Full Retirement Age is determined</h2>
+      <p>Full Retirement Age (FRA) is set by federal law and depends on the year you were born. For everyone born in 1960 or later, FRA is 67. For people born 1943-1954, FRA is 66. For birth years between those ranges, FRA gradually increases by two months at a time. The earliest possible claim is age 62 (with a permanent reduction), and there is no benefit to waiting past age 70.</p>
+      <h2>Why the claiming age matters so much</h2>
+      <p>Each year you claim before FRA cuts your monthly benefit permanently. Each year you wait past FRA (up to 70) adds about 8% to your monthly benefit, also permanently. Over a 20-30 year retirement, the difference between claiming at 62 and 70 typically totals tens of thousands of dollars. There is no single right age — it depends on your health, financial situation, and life expectancy.</p>
+    </section>
+    </article>
+  </div>
+</Base>
+
+<script>
+  function calculateFRA(year) {
+    if (year <= 1937) return { years: 65, months: 0 };
+    if (year <= 1942) return { years: 65, months: (year - 1937) * 2 };
+    if (year <= 1954) return { years: 66, months: 0 };
+    if (year <= 1959) return { years: 66, months: (year - 1954) * 2 };
+    return { years: 67, months: 0 };
+  }
+
+  function fraInMonths(fra) { return fra.years * 12 + fra.months; }
+
+  // Calculate benefit % at a given claim age, given FRA in months
+  function benefitPct(claimMonths, fraMonths) {
+    if (claimMonths === fraMonths) return 100;
+    if (claimMonths < fraMonths) {
+      // Early: first 36 months before FRA = 5/9 of 1% per month
+      //        additional months beyond 36 = 5/12 of 1% per month
+      const monthsEarly = fraMonths - claimMonths;
+      const first36 = Math.min(36, monthsEarly);
+      const beyond = Math.max(0, monthsEarly - 36);
+      const reduction = first36 * (5/9) + beyond * (5/12);
+      return Math.round((100 - reduction) * 10) / 10;
+    } else {
+      // Delayed: +8% per year past FRA, up to age 70 only
+      const capMonths = 70 * 12;
+      const effectiveClaim = Math.min(claimMonths, capMonths);
+      const monthsDelayed = effectiveClaim - fraMonths;
+      const increase = monthsDelayed * (8 / 12);
+      return Math.round((100 + increase) * 10) / 10;
+    }
+  }
+
+  function render() {
+    const yearInput = document.getElementById('byear');
+    const year = parseInt(yearInput.value, 10);
+    if (!year || year < 1900 || year > 2024) {
+      yearInput.focus(); return;
+    }
+    const fra = calculateFRA(year);
+    const fraMonths = fraInMonths(fra);
+    const fraTxt = fra.months === 0 ? `${fra.years} years` : `${fra.years} years and ${fra.months} months`;
+    document.getElementById('fra-value').textContent = fraTxt;
+
+    const tbody = document.getElementById('benefit-rows');
+    tbody.innerHTML = '';
+    for (let age = 62; age <= 70; age++) {
+      const months = age * 12;
+      const pct = benefitPct(months, fraMonths);
+      let note = '';
+      if (months === fraMonths) note = 'Full Retirement Age (100% of earned benefit)';
+      else if (age === 62) note = 'Earliest possible claiming age';
+      else if (age === 70) note = 'No benefit to waiting longer';
+      else if (months < fraMonths) note = 'Permanently reduced';
+      else note = 'Delayed retirement credits';
+      const cls = months === fraMonths ? 'row-fra' : (months < fraMonths ? 'row-early' : 'row-late');
+      tbody.innerHTML += `<tr class="${cls}"><td><strong>${age}</strong></td><td>${pct}%</td><td>${note}</td></tr>`;
+    }
+    document.getElementById('result').classList.remove('hidden');
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.getElementById('calc-btn').addEventListener('click', render);
+  document.getElementById('byear').addEventListener('keydown', e => { if (e.key === 'Enter') render(); });
+</script>
+
+<style>
+  /* Calculator scoped styles using new design system */
+  .calc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin: 2rem 0;
+  }
+  .calc-card label {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+  }
+  .calc-input-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+  .calc-input-row input[type="number"] {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-family: var(--sans);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+  }
+  .calc-input-row input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+  .calc-hint {
+    margin-top: 0.85rem;
+    font-size: 0.85rem;
+    color: var(--soft);
+  }
+
+  .result.hidden { display: none; }
+  .result {
+    background: var(--primary-soft);
+    border-left: 3px solid var(--primary);
+    padding: 1.75rem;
+    margin: 2rem 0;
+    border-radius: var(--radius);
+  }
+  .result-main {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+  .result-label {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+  .result-value {
+    font-family: var(--serif);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .result-detail p { color: var(--ink-soft); margin: 0; }
+
+  .table-title { font-size: 1.2rem; margin-top: 1.75rem; }
+  .table-sub { color: var(--ink-soft); font-size: 0.92rem; margin-bottom: 1rem; }
+  .table-wrap { overflow-x: auto; }
+  .benefit-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .benefit-table th, .benefit-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 0.92rem;
+  }
+  .benefit-table th {
+    background: var(--bg-soft);
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .explain { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--hairline); }
+  .explain h3 { font-size: 1.1rem; margin-bottom: 0.6rem; }
+  .explain p { color: var(--ink-soft); font-size: 0.95rem; }
+
+  .art-header { margin-bottom: 2rem; }
+  .art-header .eyebrow {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .art-header h1 { margin: 0 0 1rem; font-size: 2.2rem; }
+  .art-header .lead { font-size: 1.08rem; color: var(--ink-soft); line-height: 1.6; }
+
+  .rich { margin-top: 3rem; }
+  .rich h2 { font-size: 1.5rem; }
+  .rich p { color: var(--ink-soft); }
+</style>
